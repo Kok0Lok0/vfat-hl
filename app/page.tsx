@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScanResponse, FarmResult } from '@/lib/types';
 
 // Format number with K/M/B suffixes
-function formatNumber(num: number | undefined): string {
-  if (num === undefined) return '—';
+function formatNumber(num: number | undefined | null): string {
+  if (num == null) return '—';
   if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
   if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
   if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
@@ -13,8 +13,8 @@ function formatNumber(num: number | undefined): string {
 }
 
 // Format percentage
-function formatPercent(num: number | undefined): string {
-  if (num === undefined) return '—';
+function formatPercent(num: number | undefined | null): string {
+  if (num == null) return '—';
   return `${num.toFixed(2)}%`;
 }
 
