@@ -1,0 +1,39 @@
+{
+  "prefixes": [
+    "st",
+    "c",
+    "a",
+    "v",
+    "moo",
+    "yv",
+    "x",
+    "w",
+    "b",
+    "g",
+    "s"
+  ],
+  "suffixes": [
+    "-LP",
+    "LP",
+    "-GAUGE",
+    "-S*LP"
+  ],
+  "contains": [
+    "LP",
+    "UNI-V2",
+    "UNI-V3",
+    "VELO-",
+    "AERO-",
+    "SUSHI-",
+    "CAKE-",
+    "CURVE-",
+    "CRV-",
+    "BEEFY",
+    "YEARN",
+    "CONVEX",
+    "GAUGE",
+    "VAULT",
+    "RECEIPT"
+  ],
+  "comment": "These patterns help identify wrapper/receipt tokens that are not directly tradeable. Prefixes are checked case-insensitively at the start. Contains patterns are checked anywhere in the symbol."
+}
