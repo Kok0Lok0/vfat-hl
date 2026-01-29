@@ -321,8 +321,8 @@ export default function Home() {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [onlyHedgeable, setOnlyHedgeable] = useState(false);
-  const [minTvl, setMinTvl] = useState('');
+  const [onlyHedgeable, setOnlyHedgeable] = useState(true);
+  const [minTvl, setMinTvl] = useState('10000');
   const [minApy, setMinApy] = useState('');
 
   // Sorting

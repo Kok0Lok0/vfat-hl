@@ -231,8 +231,8 @@ function transformVfatFarm(raw: VfatApiFarm): VfatFarm {
   // Build pool name
   const poolName = raw.pool.name || raw.pool.symbol || `Pool ${raw.poolIndex}`;
   
-  // Build URL to VFAT
-  const vfatUrl = `https://vfat.io/yield?chains=${raw.chainId}&protocols=${raw.protocol.id}`;
+  // Build URL to VFAT - link directly to the farm position
+  const vfatUrl = `https://vfat.io/farm?chainId=${raw.chainId}&farmAddress=${raw.address}`;
 
   return {
     farm_id: `${raw.chainId}-${raw.address}-${raw.poolIndex}`,
