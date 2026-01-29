@@ -238,19 +238,19 @@ function FarmDetail({ farm, onClose }: { farm: FarmResult; onClose: () => void }
                   </svg>
                 </a>
               )}
-              {farm.hedgeable_assets_on_hl.length > 0 && (
-                <a
-                  href={`https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary inline-flex items-center gap-2"
-                >
-                  <span>View on HL</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-                  </svg>
-                </a>
-              )}
+              <a
+                href={farm.hedgeable_assets_on_hl.length > 0
+                  ? `https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`
+                  : 'https://app.hyperliquid.xyz'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary inline-flex items-center gap-2"
+              >
+                <span>View on HL</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                </svg>
+              </a>
             </section>
           </div>
         </div>
@@ -579,16 +579,16 @@ export default function Home() {
                             VFAT
                           </a>
                         )}
-                        {farm.hedgeable_assets_on_hl.length > 0 && (
-                          <a
-                            href={`https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-accent-green hover:underline"
-                          >
-                            HL
-                          </a>
-                        )}
+                        <a
+                          href={farm.hedgeable_assets_on_hl.length > 0
+                            ? `https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`
+                            : 'https://app.hyperliquid.xyz'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent-green hover:underline"
+                        >
+                          HL
+                        </a>
                       </div>
                     </td>
                   </tr>
