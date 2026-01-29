@@ -539,7 +539,6 @@ export default function Home() {
                   <SortHeader label="HL Hedgeable" column="hedgeable" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
                   <SortHeader label="TVL" column="tvl" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="text-right" />
                   <SortHeader label="APY" column="apy" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="text-right" />
-                  <SortHeader label="Confidence" column="confidence" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
                   <th>Links</th>
                 </tr>
               </thead>
@@ -563,9 +562,6 @@ export default function Home() {
                     </td>
                     <td className="text-right mono text-sm">
                       {formatPercent(farm.apy)}
-                    </td>
-                    <td>
-                      <ConfidenceBadge confidence={farm.match_confidence} />
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2 text-sm">

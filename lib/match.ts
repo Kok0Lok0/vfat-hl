@@ -228,7 +228,14 @@ export function analyzeFarm(farm: VfatFarm, hlPerpSet: Set<string>): FarmResult 
   } else if (farmType === 'unknown') {
     notes.push('Could not determine farm structure');
   } else if (nonMajorAssets.length === 0) {
-    notes.push('No non-major assets to evaluate');
+    // All assets are majors — check if they have HL perps (e.g. ETH, BTC)
+    const hedgeableMajors = normalizedAssets.filter(asset =>
+      asset && hlPerpSet.has(asset.toUpperCase())
+    );
+    if (hedgeableMajors.length > 0) {
+      hedgeableAssetsOnHl = hedgeableMajors;
+      hedgeable = true;
+    }
   } else {
     // Check each non-major asset against HL perps
     hedgeableAssetsOnHl = nonMajorAssets.filter(asset =>
