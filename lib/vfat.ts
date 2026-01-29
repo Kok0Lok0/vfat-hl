@@ -144,18 +144,27 @@ function getChainName(chainId: number): string {
 }
 
 /**
- * Calculate estimated APY from rewards
- * This is a rough estimate based on reward rates and TVL
+ * Calculate staked TVL from farm balance and pool price
+ * TVL = (balance / 10^decimals) * pricePerToken
  */
-function estimateApy(farm: VfatApiFarm): number | undefined {
-  // If pool has no price/TVL data, can't estimate APY
-  if (!farm.pool.price) return undefined;
-  
-  const poolTvl = farm.pool.price;
-  if (poolTvl <= 0) return undefined;
-  
+function calculateTvl(farm: VfatApiFarm): number | undefined {
+  if (!farm.pool.price || !farm.balance) return undefined;
+
+  const balance = parseFloat(farm.balance);
+  if (!balance || balance <= 0) return undefined;
+
+  const tvl = (balance / Math.pow(10, farm.pool.decimals)) * farm.pool.price;
+  return tvl > 0 ? tvl : undefined;
+}
+
+/**
+ * Calculate estimated APY from rewards and staked TVL
+ */
+function estimateApy(farm: VfatApiFarm, tvl: number | undefined): number | undefined {
+  if (!tvl || tvl <= 0) return undefined;
+
   let totalRewardValuePerYear = 0;
-  
+
   // On-chain rewards
   for (const reward of farm.rewards) {
     if (reward.rewardToken.price && reward.rewardsPerSecond) {
@@ -164,7 +173,7 @@ function estimateApy(farm: VfatApiFarm): number | undefined {
       totalRewardValuePerYear += rewardsPerYear * reward.rewardToken.price;
     }
   }
-  
+
   // Off-chain rewards (Merkl, Metrom)
   for (const reward of farm.offChainRewards) {
     if (reward.rewardToken.price && reward.rewardsPerSecond) {
@@ -173,12 +182,12 @@ function estimateApy(farm: VfatApiFarm): number | undefined {
       totalRewardValuePerYear += rewardsPerYear * reward.rewardToken.price;
     }
   }
-  
+
   if (totalRewardValuePerYear <= 0) return undefined;
-  
+
   // APY = (rewards per year / TVL) * 100
-  const apy = (totalRewardValuePerYear / poolTvl) * 100;
-  
+  const apy = (totalRewardValuePerYear / tvl) * 100;
+
   // Sanity check - APY above 10000% is probably wrong
   return apy > 10000 ? undefined : apy;
 }
@@ -213,18 +222,18 @@ function transformVfatFarm(raw: VfatApiFarm): VfatFarm {
     }
   }
   
-  // Calculate TVL from pool price (which represents total value)
-  const tvl = raw.pool.price;
-  
-  // Estimate APY from rewards
-  const apy = estimateApy(raw);
+  // Calculate TVL from staked balance and pool token price
+  const tvl = calculateTvl(raw);
+
+  // Estimate APY from rewards and TVL
+  const apy = estimateApy(raw, tvl);
   
   // Build pool name
   const poolName = raw.pool.name || raw.pool.symbol || `Pool ${raw.poolIndex}`;
   
   // Build URL to VFAT
   const vfatUrl = `https://vfat.io/yield?chains=${raw.chainId}&protocols=${raw.protocol.id}`;
-  
+
   return {
     farm_id: `${raw.chainId}-${raw.address}-${raw.poolIndex}`,
     chain: getChainName(raw.chainId),
@@ -234,7 +243,7 @@ function transformVfatFarm(raw: VfatApiFarm): VfatFarm {
     tokens,
     tvl,
     apy,
-    url: raw.protocol.url || vfatUrl,
+    url: vfatUrl,
     raw: raw as unknown as Record<string, unknown>,
   };
 }

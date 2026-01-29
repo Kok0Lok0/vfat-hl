@@ -224,9 +224,9 @@ function FarmDetail({ farm, onClose }: { farm: FarmResult; onClose: () => void }
             )}
             
             {/* Links */}
-            {farm.url && (
-              <section>
-                <a 
+            <section className="flex flex-wrap gap-3">
+              {farm.url && (
+                <a
                   href={farm.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -237,12 +237,79 @@ function FarmDetail({ farm, onClose }: { farm: FarmResult; onClose: () => void }
                     <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
                   </svg>
                 </a>
-              </section>
-            )}
+              )}
+              {farm.hedgeable_assets_on_hl.length > 0 && (
+                <a
+                  href={`https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary inline-flex items-center gap-2"
+                >
+                  <span>View on HL</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                  </svg>
+                </a>
+              )}
+            </section>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+type SortColumn = 'chain' | 'protocol' | 'pair' | 'hedgeable' | 'tvl' | 'apy' | 'confidence';
+type SortDirection = 'asc' | 'desc';
+
+function sortData(data: FarmResult[], column: SortColumn, direction: SortDirection): FarmResult[] {
+  return [...data].sort((a, b) => {
+    let cmp = 0;
+    switch (column) {
+      case 'chain':
+        cmp = a.chain.localeCompare(b.chain);
+        break;
+      case 'protocol':
+        cmp = a.protocol.localeCompare(b.protocol);
+        break;
+      case 'pair':
+        cmp = a.pair_symbols.join('/').localeCompare(b.pair_symbols.join('/'));
+        break;
+      case 'hedgeable':
+        cmp = a.hedgeable_assets_on_hl.length - b.hedgeable_assets_on_hl.length;
+        break;
+      case 'tvl':
+        cmp = (a.tvl ?? 0) - (b.tvl ?? 0);
+        break;
+      case 'apy':
+        cmp = (a.apy ?? 0) - (b.apy ?? 0);
+        break;
+      case 'confidence': {
+        const order = { high: 3, medium: 2, low: 1 };
+        cmp = (order[a.match_confidence] ?? 0) - (order[b.match_confidence] ?? 0);
+        break;
+      }
+    }
+    return direction === 'desc' ? -cmp : cmp;
+  });
+}
+
+function SortHeader({ label, column, activeColumn, direction, onSort, className }: {
+  label: string;
+  column: SortColumn;
+  activeColumn: SortColumn;
+  direction: SortDirection;
+  onSort: (col: SortColumn) => void;
+  className?: string;
+}) {
+  const isActive = column === activeColumn;
+  return (
+    <th
+      className={`cursor-pointer select-none hover:text-text-primary ${className || ''}`}
+      onClick={() => onSort(column)}
+    >
+      {label} {isActive ? (direction === 'asc' ? '▲' : '▼') : ''}
+    </th>
   );
 }
 
@@ -251,18 +318,38 @@ export default function Home() {
   const [data, setData] = useState<ScanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filters
   const [search, setSearch] = useState('');
   const [onlyHedgeable, setOnlyHedgeable] = useState(false);
   const [minTvl, setMinTvl] = useState('');
   const [minApy, setMinApy] = useState('');
-  
+
+  // Sorting
+  const [sortColumn, setSortColumn] = useState<SortColumn>('tvl');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
   // Selected farm for detail view
   const [selectedFarm, setSelectedFarm] = useState<FarmResult | null>(null);
-  
+
   // Debounced search
   const debouncedSearch = useDebounce(search, 300);
+
+  const handleSort = useCallback((col: SortColumn) => {
+    setSortColumn(prev => {
+      if (prev === col) {
+        setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
+        return col;
+      }
+      setSortDirection(col === 'tvl' || col === 'apy' || col === 'hedgeable' ? 'desc' : 'asc');
+      return col;
+    });
+  }, []);
+
+  const sortedData = useMemo(() => {
+    if (!data) return [];
+    return sortData(data.data, sortColumn, sortDirection);
+  }, [data, sortColumn, sortDirection]);
   
   // Build query params
   const queryParams = useMemo(() => {
@@ -440,27 +527,26 @@ export default function Home() {
       )}
       
       {/* Table */}
-      {!loading && data && data.data.length > 0 && (
+      {!loading && data && sortedData.length > 0 && (
         <div className="border border-border-subtle rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table>
               <thead>
                 <tr>
-                  <th>Chain</th>
-                  <th>Protocol</th>
-                  <th>Pair</th>
-                  <th>Non-Major</th>
-                  <th>HL Hedgeable</th>
-                  <th className="text-right">TVL</th>
-                  <th className="text-right">APY</th>
-                  <th>Confidence</th>
-                  <th>Link</th>
+                  <SortHeader label="Chain" column="chain" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+                  <SortHeader label="Protocol" column="protocol" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+                  <SortHeader label="Pair" column="pair" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+                  <SortHeader label="HL Hedgeable" column="hedgeable" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+                  <SortHeader label="TVL" column="tvl" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="text-right" />
+                  <SortHeader label="APY" column="apy" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="text-right" />
+                  <SortHeader label="Confidence" column="confidence" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+                  <th>Links</th>
                 </tr>
               </thead>
               <tbody>
-                {data.data.map((farm) => (
-                  <tr 
-                    key={farm.farm_id} 
+                {sortedData.map((farm) => (
+                  <tr
+                    key={farm.farm_id}
                     className="cursor-pointer"
                     onClick={() => setSelectedFarm(farm)}
                   >
@@ -468,15 +554,6 @@ export default function Home() {
                     <td className="text-sm">{farm.protocol}</td>
                     <td className="mono text-sm">
                       {farm.pair_symbols.join(' / ')}
-                    </td>
-                    <td className="text-sm">
-                      {farm.non_major_assets.length > 0 ? (
-                        <span className="mono text-accent-blue">
-                          {farm.non_major_assets.join(', ')}
-                        </span>
-                      ) : (
-                        <span className="text-text-muted">—</span>
-                      )}
                     </td>
                     <td>
                       <HedgeableBadges assets={farm.hedgeable_assets_on_hl} />
@@ -490,18 +567,29 @@ export default function Home() {
                     <td>
                       <ConfidenceBadge confidence={farm.match_confidence} />
                     </td>
-                    <td>
-                      {farm.url && (
-                        <a 
-                          href={farm.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-accent-blue hover:underline text-sm"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          →
-                        </a>
-                      )}
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2 text-sm">
+                        {farm.url && (
+                          <a
+                            href={farm.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-blue hover:underline"
+                          >
+                            VFAT
+                          </a>
+                        )}
+                        {farm.hedgeable_assets_on_hl.length > 0 && (
+                          <a
+                            href={`https://app.hyperliquid.xyz/trade/${farm.hedgeable_assets_on_hl[0]}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-green hover:underline"
+                          >
+                            HL
+                          </a>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -512,7 +600,7 @@ export default function Home() {
       )}
       
       {/* Empty state */}
-      {!loading && data && data.data.length === 0 && (
+      {!loading && data && sortedData.length === 0 && (
         <div className="text-center py-20 text-text-secondary">
           <p>No farms found matching your criteria.</p>
           <p className="text-sm mt-2">Try adjusting your filters or refresh the data.</p>

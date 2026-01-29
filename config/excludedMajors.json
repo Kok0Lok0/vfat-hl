@@ -1,6 +1,8 @@
 [
   "ETH",
   "WETH",
+  "BTC",
+  "WBTC",
   "USDC",
   "USDT",
   "DAI",
