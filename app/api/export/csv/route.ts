@@ -9,6 +9,7 @@ import { scanCache, CACHE_KEYS } from '@/lib/cache';
 import { FarmResult, ScanQueryParams } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 function parseQueryParams(request: NextRequest): ScanQueryParams {
   const searchParams = request.nextUrl.searchParams;
