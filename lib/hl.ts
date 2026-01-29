@@ -51,9 +51,9 @@ export async function fetchHlPerps(forceRefresh = false): Promise<HlFetchResult>
       throw new Error('Invalid HL API response: missing universe array');
     }
 
-    // Filter out delisted assets and build the set
+    // Filter out delisted assets and those with no name
     const activeAssets = data.universe.filter(
-      (asset) => !asset.isDelisted
+      (asset) => !asset.isDelisted && asset.name
     );
 
     // Build normalized set of perp symbols (uppercase)

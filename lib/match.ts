@@ -77,6 +77,7 @@ export function isExcludedMajor(symbol: string): boolean {
  * Detect if a symbol looks like a wrapper/receipt token
  */
 export function isWrapperToken(symbol: string): boolean {
+  if (!symbol) return false;
   const upper = symbol.toUpperCase();
   
   // Check contains patterns
@@ -110,7 +111,7 @@ export function classifyFarmType(farm: VfatFarm): FarmType {
   }
   
   // Check for wrapper/receipt token indicators
-  const poolName = farm.pool_name.toUpperCase();
+  const poolName = (farm.pool_name || '').toUpperCase();
   const hasWrapperInName = isWrapperToken(poolName);
   
   if (tokens.length === 1) {
@@ -230,8 +231,8 @@ export function analyzeFarm(farm: VfatFarm, hlPerpSet: Set<string>): FarmResult 
     notes.push('No non-major assets to evaluate');
   } else {
     // Check each non-major asset against HL perps
-    hedgeableAssetsOnHl = nonMajorAssets.filter(asset => 
-      hlPerpSet.has(asset.toUpperCase())
+    hedgeableAssetsOnHl = nonMajorAssets.filter(asset =>
+      asset && hlPerpSet.has(asset.toUpperCase())
     );
     
     hedgeable = hedgeableAssetsOnHl.length > 0;

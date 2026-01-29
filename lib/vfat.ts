@@ -192,6 +192,7 @@ function transformVfatFarm(raw: VfatApiFarm): VfatFarm {
   
   if (raw.pool.underlying && Array.isArray(raw.pool.underlying)) {
     for (const t of raw.pool.underlying) {
+      if (!t.symbol) continue; // skip tokens with null/undefined symbol
       tokens.push({
         symbol: t.symbol,
         address: t.address,
@@ -202,7 +203,7 @@ function transformVfatFarm(raw: VfatApiFarm): VfatFarm {
   }
   
   // If no underlying tokens, try to parse from pool symbol (e.g., "WETH/USDC")
-  if (tokens.length === 0 && raw.pool.symbol) {
+  if (tokens.length === 0 && raw.pool?.symbol) {
     const parts = raw.pool.symbol.split(/[-\/]/);
     for (const part of parts) {
       const symbol = part.trim();
